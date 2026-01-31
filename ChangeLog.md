@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.2.0 (in development)
+
+No changes yet.
+
 ## 1.1.0
 
 ### Enhancements
