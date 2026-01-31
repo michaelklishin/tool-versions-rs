@@ -15,6 +15,6 @@ pub mod errors;
 pub mod tool_versions;
 
 pub use errors::Error;
-pub use tool_versions::{ToolEntry, ToolVersions};
+pub use tool_versions::{IntoIter, ToolEntry, ToolVersions};
 
 pub type Result<T> = std::result::Result<T, Error>;

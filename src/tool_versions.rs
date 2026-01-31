@@ -6,11 +6,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt;
 use std::fs;
 use std::io;
 use std::path::Path;
+use std::vec;
 
 use crate::Result;
 use crate::errors::Error;
@@ -193,6 +196,226 @@ impl fmt::Display for ToolVersions {
             }
         }
         Ok(())
+    }
+}
+
+//
+// Conversions to HashMap
+//
+
+impl From<ToolVersions> for HashMap<String, Vec<String>> {
+    fn from(tv: ToolVersions) -> Self {
+        tv.tools.into_iter().map(|e| (e.name, e.versions)).collect()
+    }
+}
+
+impl From<ToolVersions> for HashMap<String, String> {
+    fn from(tv: ToolVersions) -> Self {
+        tv.tools
+            .into_iter()
+            .filter_map(|e| e.versions.into_iter().next().map(|v| (e.name, v)))
+            .collect()
+    }
+}
+
+impl From<&ToolVersions> for HashMap<String, Vec<String>> {
+    fn from(tv: &ToolVersions) -> Self {
+        tv.tools
+            .iter()
+            .map(|e| (e.name.clone(), e.versions.clone()))
+            .collect()
+    }
+}
+
+impl From<&ToolVersions> for HashMap<String, String> {
+    fn from(tv: &ToolVersions) -> Self {
+        tv.tools
+            .iter()
+            .filter_map(|e| e.versions.first().map(|v| (e.name.clone(), v.clone())))
+            .collect()
+    }
+}
+
+//
+// Conversions from HashMap
+//
+
+impl From<HashMap<String, Vec<String>>> for ToolVersions {
+    fn from(map: HashMap<String, Vec<String>>) -> Self {
+        let tools: Vec<ToolEntry> = map
+            .into_iter()
+            .map(|(name, versions)| ToolEntry::with_versions(name, versions))
+            .collect();
+        Self {
+            lines: Vec::new(),
+            tools,
+        }
+    }
+}
+
+impl From<HashMap<String, String>> for ToolVersions {
+    fn from(map: HashMap<String, String>) -> Self {
+        let tools: Vec<ToolEntry> = map
+            .into_iter()
+            .map(|(name, version)| ToolEntry::new(name, version))
+            .collect();
+        Self {
+            lines: Vec::new(),
+            tools,
+        }
+    }
+}
+
+//
+// Conversions to BTreeMap
+//
+
+impl From<ToolVersions> for BTreeMap<String, Vec<String>> {
+    fn from(tv: ToolVersions) -> Self {
+        tv.tools.into_iter().map(|e| (e.name, e.versions)).collect()
+    }
+}
+
+impl From<ToolVersions> for BTreeMap<String, String> {
+    fn from(tv: ToolVersions) -> Self {
+        tv.tools
+            .into_iter()
+            .filter_map(|e| e.versions.into_iter().next().map(|v| (e.name, v)))
+            .collect()
+    }
+}
+
+impl From<&ToolVersions> for BTreeMap<String, Vec<String>> {
+    fn from(tv: &ToolVersions) -> Self {
+        tv.tools
+            .iter()
+            .map(|e| (e.name.clone(), e.versions.clone()))
+            .collect()
+    }
+}
+
+impl From<&ToolVersions> for BTreeMap<String, String> {
+    fn from(tv: &ToolVersions) -> Self {
+        tv.tools
+            .iter()
+            .filter_map(|e| e.versions.first().map(|v| (e.name.clone(), v.clone())))
+            .collect()
+    }
+}
+
+//
+// Conversions from BTreeMap
+//
+
+impl From<BTreeMap<String, Vec<String>>> for ToolVersions {
+    fn from(map: BTreeMap<String, Vec<String>>) -> Self {
+        let tools: Vec<ToolEntry> = map
+            .into_iter()
+            .map(|(name, versions)| ToolEntry::with_versions(name, versions))
+            .collect();
+        Self {
+            lines: Vec::new(),
+            tools,
+        }
+    }
+}
+
+impl From<BTreeMap<String, String>> for ToolVersions {
+    fn from(map: BTreeMap<String, String>) -> Self {
+        let tools: Vec<ToolEntry> = map
+            .into_iter()
+            .map(|(name, version)| ToolEntry::new(name, version))
+            .collect();
+        Self {
+            lines: Vec::new(),
+            tools,
+        }
+    }
+}
+
+//
+// IntoIterator
+//
+
+pub struct IntoIter {
+    inner: vec::IntoIter<ToolEntry>,
+}
+
+impl Iterator for IntoIter {
+    type Item = (String, Vec<String>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next().map(|e| (e.name, e.versions))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl ExactSizeIterator for IntoIter {}
+
+impl IntoIterator for ToolVersions {
+    type Item = (String, Vec<String>);
+    type IntoIter = IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter {
+            inner: self.tools.into_iter(),
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a ToolVersions {
+    type Item = (&'a str, &'a [String]);
+    type IntoIter = Box<dyn Iterator<Item = Self::Item> + 'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Box::new(
+            self.tools
+                .iter()
+                .map(|e| (e.name.as_str(), e.versions.as_slice())),
+        )
+    }
+}
+
+//
+// FromIterator
+//
+
+impl FromIterator<(String, Vec<String>)> for ToolVersions {
+    fn from_iter<I: IntoIterator<Item = (String, Vec<String>)>>(iter: I) -> Self {
+        let mut tv = Self::new();
+        tv.extend(iter);
+        tv
+    }
+}
+
+impl FromIterator<(String, String)> for ToolVersions {
+    fn from_iter<I: IntoIterator<Item = (String, String)>>(iter: I) -> Self {
+        let mut tv = Self::new();
+        tv.extend(iter);
+        tv
+    }
+}
+
+//
+// Extend
+//
+
+impl Extend<(String, Vec<String>)> for ToolVersions {
+    fn extend<I: IntoIterator<Item = (String, Vec<String>)>>(&mut self, iter: I) {
+        for (name, versions) in iter {
+            self.set_versions(&name, versions);
+        }
+    }
+}
+
+impl Extend<(String, String)> for ToolVersions {
+    fn extend<I: IntoIterator<Item = (String, String)>>(&mut self, iter: I) {
+        for (name, version) in iter {
+            self.set(&name, &version);
+        }
     }
 }
 
