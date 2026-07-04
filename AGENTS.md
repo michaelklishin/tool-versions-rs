@@ -40,7 +40,7 @@ Property-based tests are written using [proptest](https://docs.rs/proptest/lates
 ## Rust Code Style
 
  * Place `use` statements at the top of the module, never inside individual functions
- * Avoid fully qualified type paths (e.g., `std::fmt::Display`) unless needed to resolve ambiguity
+ * Avoid fully qualified type paths (e.g. `std::fmt::Display`) unless needed to resolve ambiguity
  * Do not add inline tests (`#[cfg(test)]` modules) in `src/` files; place all tests in `tests/`
 
 ## Comments, Writing Style and Voice
@@ -57,6 +57,16 @@ to all prose: design docs, analyses, notes, and commit messages.
  * Prefer the plainest word. No coined verbs, no jargon for its own sake
  * No flourish, no editorializing, no imagery. Real domain terms are fine
  * If a sentence needs a second clause to justify itself, it is probably too clever
+ * Plain full sentences over compressed clever noun phrases: "a helper
+   crate", not "a `tower`-shaped convenience"
+ * State guarantees and behavior explicitly; do not leave them implied
+   by jargon
+ * Name tools and platforms precisely: `rustc` 1.92, edition 2024,
+   crates.io, WebAssembly
+ * No bold for emphasis; bold is for structural labels only, and sparingly
+ * No "term — explanation" em-dash glosses: use ": " or parentheses
+ * These vocabulary rules apply to identifiers too: test function names,
+   helper modules, and fixture names use the same plain words as prose
 
 ### Writing and Markdown Style
 
@@ -68,7 +78,7 @@ to all prose: design docs, analyses, notes, and commit messages.
    like `Display`, functions like `Iterator::next`, modules, file names, and paths
  * Avoid robotic labels such as `**Thing / other:**`; write a plain sentence or a simple label
  * Match the existing conventions of the file and subdirectory you are
-   editing — bullet character, heading depth, ID schemes, and table shape
+   editing: bullet character, heading depth, ID schemes, and table shape
    vary by project, and the local choice wins
 
 ## Change Log
